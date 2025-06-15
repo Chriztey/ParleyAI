@@ -12,9 +12,12 @@ import Header from "./../components/Header";
 export default function Home() {
     const [showModal, setShowModal] = useState(false);
     const [script, setScript] = useState(""); // Store transcribed text
+    const [finalSpeech, setFinalSpeech] = useState('');
+let idleTimeout = null;
     const [isListening, setIsListening] = useState(false);
     const recognitionRef = useRef<any>(null);
     const listeningRef = useRef(false);
+    const silenceTimerRef = useRef<NodeJS.Timeout | null>(null);
     
     useEffect(() => {
         initializeSpeechRecognition();
@@ -60,12 +63,22 @@ export default function Home() {
             const transcript = event.results[event.results.length - 1][0].transcript.trim();
             console.log("🧠 Heard:", transcript);
             
+            
             // Update script with all spoken text
             setScript(prev => {
                 const newScript = prev + transcript + ' ';
                 console.log("📝 Full script:", newScript);
+
+                // Restart 5s idle timer every update
+        idleTimeout = setTimeout(() => {
+            setFinalSpeech(newScript.trim());
+            setScript(''); // clear buffer
+            console.log("✅ Final speech submitted:", newScript.trim());
+        }, 10000);
                 return newScript;
             });
+
+          
 
             // Optional: Add voice commands
             const lowerTranscript = transcript.toLowerCase();
@@ -108,10 +121,6 @@ export default function Home() {
             synth.speak(utterance);
         };
 
-        // ✅ Optional: Proactive greeting after idle time
-        // setTimeout(() => {
-        //     speak("Hi! I'm ready to transcribe your speech. Just start talking!");
-        // }, 3000);
     };
 
     const handleLogout = async () => {
@@ -135,9 +144,6 @@ export default function Home() {
                             {isListening ? 'Listening...' : 'Speech recognition inactive'}
                         </span>
                     </div>
-                    {/* <div className="text-gray-600">
-                        Script length: {script.length} characters
-                    </div> */}
                 </div>
             </div>
             
