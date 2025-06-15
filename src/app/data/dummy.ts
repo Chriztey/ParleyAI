@@ -19,5 +19,10 @@ export const dummyMood = {
     { speaker: "AI", time: "00:00", text: "Welcome to the stream." },
     { speaker: "User", time: "00:05", text: "Thanks! I'm excited to be here." },
     { speaker: "AI", time: "00:10", text: "Let's begin the session." },
+    { speaker: "User", time: "00:05", text: "Thanks! I'm excited to be here." },
+    { speaker: "AI", time: "00:10", text: "Let's begin the session." },
+    { speaker: "AI", time: "00:00", text: "Welcome to the stream." },
+    { speaker: "User", time: "00:05", text: "Thanks! I'm excited to be here." },
+    { speaker: "AI", time: "00:10", text: "Let's begin the session." },
   ];
   

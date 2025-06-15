@@ -2,7 +2,7 @@ import { dummyTranscript } from "../data/dummy";
 
 export default function TranscriptSidebar() {
   return (
-    <div className="flex flex-col h-full max-h-screen bg-gradient-to-b from-slate-50 to-gray-100">
+    <div className="flex flex-col rounded-xl h-full max-h-screen bg-gradient-to-b from-slate-50 to-gray-100">
       {/* Fixed Header */}
       <div className="flex-shrink-0 p-4 pb-2">
         <div className="bg-white/80 backdrop-blur-sm rounded-lg p-3 border border-gray-200 shadow-sm">
