@@ -2,6 +2,8 @@
 import { useEffect, useRef, useState } from "react";
 import { getStorage, ref, uploadBytes } from "firebase/storage";
 import { app } from "../../lib/firebase"; // adjust if your firebase config is elsewhere
+import * as faceapi from 'face-api.js';
+
 
 export default function VideoPlayer() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -20,6 +22,8 @@ export default function VideoPlayer() {
         setError("Please allow camera access to continue.");
       }
     }
+
+    
 
     setupCamera();
   }, []);

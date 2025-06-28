@@ -8,6 +8,7 @@ import VideoPlayer from "./../components/VideoPlayer";
 import MoodAnalysis from "./../components/MoodAnalysis";
 import TranscriptSidebar from "./../components/TranscriptSidebar";
 import Header from "./../components/Header";
+import VideoPlayerWithEyeTracking from "../components/VideoPlayerWithEyeTracking";
 
 export default function Home() {
     const [showModal, setShowModal] = useState(false);
@@ -132,7 +133,7 @@ let idleTimeout = null;
     };
 
     return (
-        <main className="flex flex-col h-screen"> 
+        <main className="flex flex-col h-screen bg-gray-800"> 
             <Header logout={() => setShowModal(true)} />
             
             {/* Speech Recognition Status */}
@@ -151,7 +152,8 @@ let idleTimeout = null;
             <div className="flex flex-1">
                 {/* Left Section */}
                 <div className="flex flex-col max-h-screen w-2/3 pl-4 pr-4">
-                    <VideoPlayer />
+                    {/* <VideoPlayer /> */}
+                    <VideoPlayerWithEyeTracking />
                     
                     {/* Stretch MoodAnalysis to fill remaining height */}
                     <div className="flex-1">
