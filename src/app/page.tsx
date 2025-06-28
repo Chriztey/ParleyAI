@@ -42,24 +42,34 @@ import { auth } from "../lib/firebase";
 
 export default function Home() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
+  // const [loading, setLoading] = useState(true);
+
+  // useEffect(() => {
+  //   const unsub = onAuthStateChanged(auth, (user) => {
+  //     if (user) {
+  //       console.log("✅ Logged in as:", user.displayName || user.email);
+  //       router.replace("/dashboard");
+  //     } else {
+  //       console.log("❌ Not logged in. Redirecting to login page.");
+  //       router.replace("/login");
+  //     }
+  //     setLoading(false);
+  //   });
+
+  //   return () => unsub();
+  // }, [router]);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        console.log("✅ Logged in as:", user.displayName || user.email);
-        router.replace("/dashboard");
-      } else {
-        console.log("❌ Not logged in. Redirecting to login page.");
-        router.replace("/login");
-      }
-      setLoading(false);
+   
+        router.replace("/home");
+     
+      
     });
 
-    return () => unsub();
-  }, [router]);
+   
+  
 
-  if (loading) return <p>Loading...</p>;
+  // if (loading) return <p>Loading...</p>;
 
   return null;
 }
