@@ -1,5 +1,5 @@
 import Image from "next/image";
-import Logo from '../assets/ceemo-logo.png'
+import Logo from '../assets/parley-ai-logo.png'
 
 type HeaderProps = {
   logout: () => void;
@@ -7,7 +7,7 @@ type HeaderProps = {
 
 export default function Header({ logout }: HeaderProps) {
   return (
-    <header className="relative backdrop-blur-xl bg-white/10 border-b border-white/20 shadow-xl">
+    <header className="relative backdrop-blur-xl bg-black/10 border-b border-white/20 shadow-xl">
       {/* Subtle background gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 via-blue-500/5 to-indigo-500/5 pointer-events-none"></div>
       
@@ -17,6 +17,8 @@ export default function Header({ logout }: HeaderProps) {
           {/* Glass logo container */}
           {/* <div className="relative w-12 h-12 backdrop-blur-sm bg-white/20 rounded-2xl border border-white/30 p-2 group-hover:bg-white/30 transition-all duration-300 hover:scale-105"> */}
             {/* <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/10 to-transparent pointer-events-none"></div> */}
+            
+            
             <Image 
               src={Logo} 
               alt="logo" 
@@ -29,11 +31,11 @@ export default function Header({ logout }: HeaderProps) {
           {/* App name with glass text effect */}
           <div className="relative">
             <h1 className="text-2xl font-bold text-white drop-shadow-lg tracking-wide">
-              Cheemo
+              ParleyAI
             </h1>
-            <p className="text-sm text-white/70 font-medium -mt-1">
+            {/* <p className="text-sm text-white/70 font-medium -mt-1">
               Check Emotion
-            </p>
+            </p> */}
           </div>
         </div>
 

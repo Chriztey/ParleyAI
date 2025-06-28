@@ -5,7 +5,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../../lib/firebase";
 import { signInWithGoogle } from "../../lib/auth";
 import Image from "next/image";
-import Logo from '../assets/ceemo-logo.png'
+import Logo from '../assets/parley-ai-logo.png'
 
 export default function LoginPage() {
   const router = useRouter();
@@ -50,7 +50,7 @@ export default function LoginPage() {
         <div className="relative text-center">
           {/* Logo with glass effect */}
           <div className="w-24 h-24 mx-auto mb-6 relative">
-            <div className="absolute inset-0 backdrop-blur-sm bg-white/20 rounded-full border border-white/30"></div>
+            <div className="absolute inset-0 b bg-white rounded-full border border-white/30"></div>
             <Image 
               src={Logo} 
               alt="logo" 
@@ -61,7 +61,7 @@ export default function LoginPage() {
           </div>
 
           <h1 className="text-3xl font-bold mb-3 text-white drop-shadow-lg">
-            Welcome to Cheemo
+            Welcome to Parley AI
           </h1>
           <p className="text-lg text-white/80 mb-8 font-medium">
             Your emotional wellness companion

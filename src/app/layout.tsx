@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Cheemo",
-  description: "Check Emotion",
+  title: "Parley AI",
+  description: "",
 };
 
 export default function RootLayout({
