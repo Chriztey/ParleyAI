@@ -14,7 +14,7 @@ export default function LoginPage() {
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
       if (user) {
-        router.push("/");
+        router.push("/dashboard");
       } else {
         setChecking(false);
       }

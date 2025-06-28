@@ -45,9 +45,9 @@ export default function LandingPage() {
                   Team
                 </button>
                 <button
-                  onClick={goToLogin}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
-                >
+  onClick={goToLogin}
+  className="bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 text-white px-4 py-2 rounded-md text-sm font-medium hover:scale-105 hover:shadow-lg transition-all duration-300"
+>
                   Login
                 </button>
               </div>
@@ -99,7 +99,7 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-16 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+      <section className="pt-16 bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
           <div className="text-center">
             <h1 className="text-4xl md:text-6xl font-bold mb-6">
@@ -213,8 +213,9 @@ export default function LandingPage() {
             </p>
             <button
               onClick={goToLogin}
-              className="bg-blue-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors shadow-lg"
+              className="bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:scale-105 hover:shadow-lg transition-all duration-300  shadow-lg"
             >
+                
               Go to Login Page
             </button>
           </div>
