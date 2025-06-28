@@ -5,7 +5,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../../lib/firebase";
 import { signInWithGoogle } from "../../lib/auth";
 import Image from "next/image";
-import Logo from '../assets/parley-ai-logo.png'
+import Logo from "../assets/parley-ai-logo.png";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -46,16 +46,16 @@ export default function LoginPage() {
       <div className="relative backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl p-12 rounded-3xl max-w-md w-full mx-4 hover:bg-white/15 transition-all duration-300 hover:shadow-3xl hover:scale-105">
         {/* Inner glow effect */}
         <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-white/5 to-transparent pointer-events-none"></div>
-        
+
         <div className="relative text-center">
           {/* Logo with glass effect */}
           <div className="w-24 h-24 mx-auto mb-6 relative">
             <div className="absolute inset-0 b bg-white rounded-full border border-white/30"></div>
-            <Image 
-              src={Logo} 
-              alt="logo" 
-              width={96} 
-              height={96} 
+            <Image
+              src={Logo}
+              alt="logo"
+              width={96}
+              height={96}
               className="relative z-10 rounded-full p-2"
             />
           </div>
@@ -64,7 +64,7 @@ export default function LoginPage() {
             Welcome to Parley AI
           </h1>
           <p className="text-lg text-white/80 mb-8 font-medium">
-            Your emotional wellness companion
+            Your wellness companion
           </p>
 
           {/* Glass button */}
@@ -74,11 +74,10 @@ export default function LoginPage() {
           >
             {/* Button inner glow */}
             <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            
+
             <span className="relative z-10 flex items-center justify-center gap-3">
-              
-  Sign in with Google
-</span>
+              Sign in with Google
+            </span>
           </button>
 
           {/* Subtle decorative elements */}

@@ -2,8 +2,6 @@
 import { useEffect, useRef, useState } from "react";
 import { getStorage, ref, uploadBytes } from "firebase/storage";
 import { app } from "../../lib/firebase"; // adjust if your firebase config is elsewhere
-import * as faceapi from 'face-api.js';
-
 
 export default function VideoPlayer() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -13,7 +11,9 @@ export default function VideoPlayer() {
   useEffect(() => {
     async function setupCamera() {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+        });
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
         }
@@ -22,8 +22,6 @@ export default function VideoPlayer() {
         setError("Please allow camera access to continue.");
       }
     }
-
-    
 
     setupCamera();
   }, []);
@@ -65,7 +63,12 @@ export default function VideoPlayer() {
         <p className="text-white text-sm">{error}</p>
       ) : (
         <>
-          <video ref={videoRef} autoPlay playsInline className="w-full h-full rounded-lg" />
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            className="w-full h-full rounded-lg"
+          />
           <canvas ref={canvasRef} style={{ display: "none" }} />
         </>
       )}
