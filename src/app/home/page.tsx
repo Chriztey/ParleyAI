@@ -153,8 +153,8 @@ export default function LandingPage() {
                 Welcome to ParleyAI
               </h1>
               <p className="text-xl md:text-2xl mb-10 max-w-4xl mx-auto text-white/90 leading-relaxed">
-                We create amazing solutions that help businesses grow and
-                succeed in the digital world through cutting-edge AI technology.
+                Innovative concept that combines emotional AI, real-time
+                browsing awareness, and voice interaction.
               </p>
               <button
                 onClick={() => scrollToSection("about")}
@@ -227,20 +227,6 @@ export default function LandingPage() {
                   transform their operations and achieve their goals through
                   innovative software solutions.
                 </p>
-                <div className="flex space-x-4 pt-4">
-                  <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-xl p-4 text-center flex-1">
-                    <div className="text-2xl font-bold text-white">500+</div>
-                    <div className="text-white/70 text-sm">Projects</div>
-                  </div>
-                  <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-xl p-4 text-center flex-1">
-                    <div className="text-2xl font-bold text-white">50+</div>
-                    <div className="text-white/70 text-sm">Clients</div>
-                  </div>
-                  <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-xl p-4 text-center flex-1">
-                    <div className="text-2xl font-bold text-white">5+</div>
-                    <div className="text-white/70 text-sm">Years</div>
-                  </div>
-                </div>
               </div>
               <div className="backdrop-blur-xl bg-gradient-to-br from-white/15 to-white/5 border border-white/20 h-80 rounded-3xl flex items-center justify-center shadow-xl hover:shadow-2xl transition-all duration-500 group">
                 <div className="text-center">
