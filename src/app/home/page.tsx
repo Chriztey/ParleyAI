@@ -3,6 +3,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Logo from "../assets/parley-ai-logo.png";
 import Image from "next/image";
+import Chris from "../assets/selfphoto.jpeg";
+import Felix from "../assets/felix.png";
 
 export default function LandingPage() {
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
@@ -290,19 +292,12 @@ export default function LandingPage() {
                 <div className="backdrop-blur-xl bg-gradient-to-br from-white/15 to-white/5 rounded-3xl p-8 border border-white/20 shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-105 text-center">
                   <div className="relative mb-6">
                     <div className="backdrop-blur-xl bg-gradient-to-br from-white/20 to-white/10 w-32 h-32 rounded-full mx-auto flex items-center justify-center shadow-xl border border-white/30 group-hover:scale-110 transition-transform duration-300">
-                      <svg
-                        className="w-12 h-12 text-white/70"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                        />
-                      </svg>
+                      {" "}
+                      <Image
+                        src={Felix}
+                        alt="Profile picture"
+                        className="rounded-full w-28 h-28 object-cover"
+                      />{" "}
                     </div>
                     <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-gradient-to-br from-purple-400 to-blue-400 rounded-full flex items-center justify-center shadow-lg">
                       <svg
@@ -334,19 +329,12 @@ export default function LandingPage() {
                 <div className="backdrop-blur-xl bg-gradient-to-br from-white/15 to-white/5 rounded-3xl p-8 border border-white/20 shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-105 text-center">
                   <div className="relative mb-6">
                     <div className="backdrop-blur-xl bg-gradient-to-br from-white/20 to-white/10 w-32 h-32 rounded-full mx-auto flex items-center justify-center shadow-xl border border-white/30 group-hover:scale-110 transition-transform duration-300">
-                      <svg
-                        className="w-12 h-12 text-white/70"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                        />
-                      </svg>
+                      {" "}
+                      <Image
+                        src={Chris}
+                        alt="Profile picture"
+                        className="rounded-full w-28 h-28 object-cover"
+                      />{" "}
                     </div>
                     <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-gradient-to-br from-blue-400 to-indigo-400 rounded-full flex items-center justify-center shadow-lg">
                       <svg
