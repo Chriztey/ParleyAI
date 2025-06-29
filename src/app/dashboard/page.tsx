@@ -2,26 +2,25 @@
 import { useEffect, useRef } from "react";
 import { useState } from "react";
 import { signOut } from "firebase/auth";
+import { app } from "../../lib/firebase";
+import { useRouter } from "next/navigation";
+import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../../lib/firebase";
-
-import VideoPlayer from "./../components/VideoPlayer";
+import { addDoc, collection, getFirestore } from "firebase/firestore";
 import MoodAnalysis from "./../components/MoodAnalysis";
 import TranscriptSidebar from "./../components/TranscriptSidebar";
 import Header from "./../components/Header";
 import VideoPlayerWithEyeTracking from "../components/VideoPlayerWithEyeTracking";
-import VideoPlayerWithWebgazer from "../components/VideoPlayerWithWebgazer";
+import { getAuth } from "firebase/auth";
+import { useCallback } from "react";
 
 export default function Home() {
   const [showModal, setShowModal] = useState(false);
   const [script, setScript] = useState(""); // Store transcribed text
   const [finalSpeech, setFinalSpeech] = useState("");
-  let idleTimeout = null;
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<any>(null);
   const listeningRef = useRef(false);
-  const silenceTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const now = new Date();
   const pad = (n: number) => n.toString().padStart(2, "0");
   const dateStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(
@@ -31,18 +30,174 @@ export default function Home() {
     now.getSeconds()
   )}`;
 
-  useEffect(() => {
-    initializeSpeechRecognition();
+  const [checking, setChecking] = useState(true);
+  const router = useRouter();
 
-    return () => {
-      if (recognitionRef.current) {
-        recognitionRef.current.stop();
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        console.log("🔐 User is logged in:", user.uid);
+
+        setChecking(false);
+      } else {
+        router.push("/login");
       }
-    };
+    });
+
+    return () => unsub();
   }, []);
 
-  const initializeSpeechRecognition = () => {
-    // ✅ Check for browser compatibility
+  // useEffect(() => {
+  //   initializeSpeechRecognition();
+
+  //   return () => {
+  //     if (recognitionRef.current) {
+  //       recognitionRef.current.stop();
+  //     }
+  //   };
+  // }, []);
+
+  // const initializeSpeechRecognition = () => {
+  //   // ✅ Check for browser compatibility
+  //   const SpeechRecognition =
+  //     (window as any).SpeechRecognition ||
+  //     (window as any).webkitSpeechRecognition;
+  //   const synth = (window as any).speechSynthesis;
+
+  //   if (!SpeechRecognition || !synth) {
+  //     console.warn("Web Speech API is not supported in this browser.");
+  //     return;
+  //   }
+
+  //   let recognition = new SpeechRecognition();
+  //   recognition.continuous = true;
+  //   recognition.lang = "en-US";
+  //   recognition.interimResults = false;
+
+  //   recognitionRef.current = recognition;
+
+  //   // ✅ Start recognition loop
+  //   const startListening = () => {
+  //     if (!listeningRef.current) {
+  //       try {
+  //         recognition.start();
+  //         listeningRef.current = true;
+  //         setIsListening(true);
+  //       } catch (e) {
+  //         console.error("Failed to start recognition:", e);
+  //       }
+  //     }
+  //   };
+
+  //   let idleTimeout: NodeJS.Timeout | null = null;
+
+  //   recognition.onresult = (event: any) => {
+  //     const transcript =
+  //       event.results[event.results.length - 1][0].transcript.trim();
+  //     console.log("🧠 Heard:", transcript);
+
+  //     // Clear existing timeout first
+  //     if (idleTimeout) {
+  //       clearTimeout(idleTimeout);
+  //       idleTimeout = null;
+  //     }
+
+  //     // Update script with all spoken text
+  //     setScript((prev) => {
+  //       const newScript = prev + transcript + " ";
+  //       console.log("📝 Full script:", newScript);
+
+  //       // Restart 5s idle timer every update
+  //       idleTimeout = setTimeout(async () => {
+  //         setFinalSpeech(newScript.trim());
+  //         setScript(""); // clear buffer
+  //         console.log("✅ Final speech submitted:", newScript.trim());
+
+  //         // Upload final speech to Firebase Storage
+
+  //         try {
+  //           const db = getFirestore(app);
+  //           const auth = getAuth();
+  //           const user = auth.currentUser;
+
+  //           if (!user) {
+  //             console.warn("User not authenticated. Skipping Firestore write.");
+  //             return;
+  //           }
+
+  //           const speechRef = collection(db, "user", user.uid, "speech");
+  //           await addDoc(speechRef, {
+  //             SpeechText: newScript.trim(),
+  //             DateTime: `${dateStr}-${timeStr}"`,
+  //           });
+
+  //           console.log("📝 Speech saved to Firestore");
+  //         } catch (err) {
+  //           console.error("❌ Error saving speech:", err);
+  //         }
+  //       }, 10000);
+  //       return newScript;
+  //     });
+
+  //     // Optional: Add voice commands
+  //     const lowerTranscript = transcript.toLowerCase();
+  //     if (lowerTranscript.includes("hey assistant")) {
+  //       speak("Yes? How can I help?");
+  //     } else if (lowerTranscript.includes("clear script")) {
+  //       setScript("");
+  //       speak("Script cleared");
+  //     }
+  //   };
+
+  //   recognition.onerror = (e: any) => {
+  //     console.error("🎙️ Speech recognition error:", e.error);
+  //     if (e.error === "not-allowed" || e.error === "service-not-allowed") {
+  //       alert(
+  //         "Microphone access was denied. Please allow microphone access and refresh the page."
+  //       );
+  //     }
+  //     listeningRef.current = false;
+  //     setIsListening(false);
+  //   };
+
+  //   recognition.onend = () => {
+  //     listeningRef.current = false;
+  //     setIsListening(false);
+  //     // Restart automatically after 1 second
+  //     setTimeout(startListening, 1000);
+  //   };
+
+  //   recognition.onstart = () => {
+  //     console.log("🎤 Speech recognition started");
+  //     setIsListening(true);
+  //   };
+
+  //   // Start listening
+  //   startListening();
+
+  //   // ✅ Simple speech function
+  //   const speak = (text: string) => {
+  //     const utterance = new SpeechSynthesisUtterance(text);
+  //     utterance.lang = "en-US";
+  //     synth.speak(utterance);
+  //   };
+  // };
+
+  // Add these refs at the top of your component
+  const idleTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isProcessingRef = useRef(false);
+  const isInitializedRef = useRef(false);
+
+  const initializeSpeechRecognition = useCallback(() => {
+    // Prevent multiple initializations
+    if (isInitializedRef.current) {
+      console.log("⚠️ Speech recognition already initialized, skipping...");
+      return;
+    }
+
+    console.log("🎤 Initializing speech recognition...");
+    isInitializedRef.current = true;
+
     const SpeechRecognition =
       (window as any).SpeechRecognition ||
       (window as any).webkitSpeechRecognition;
@@ -60,7 +215,104 @@ export default function Home() {
 
     recognitionRef.current = recognition;
 
-    // ✅ Start recognition loop
+    // Separate Firebase save function
+    const saveSpeechToFirebase = async (speechText: string) => {
+      // Double-check processing flag
+      if (isProcessingRef.current) {
+        console.log("⚠️ Already processing Firebase save, skipping...");
+        return;
+      }
+
+      isProcessingRef.current = true;
+      const timestamp = Date.now();
+      console.log(`🔥 Attempting to save at ${timestamp}:`, speechText);
+
+      try {
+        const db = getFirestore(app);
+        const auth = getAuth();
+        const user = auth.currentUser;
+
+        if (!user) {
+          console.warn("User not authenticated. Skipping Firestore write.");
+          return;
+        }
+
+        const speechRef = collection(db, "user", user.uid, "speech");
+        const docRef = await addDoc(speechRef, {
+          SpeechText: speechText,
+          DateTime: `${dateStr}-${timeStr}`,
+          Timestamp: timestamp,
+        });
+
+        console.log(`📝 Speech saved to Firestore with ID: ${docRef.id}`);
+      } catch (err) {
+        console.error("❌ Error saving speech:", err);
+      } finally {
+        // Reset processing flag after a short delay to prevent rapid duplicates
+        setTimeout(() => {
+          isProcessingRef.current = false;
+        }, 1000);
+      }
+    };
+
+    const processTimeout = () => {
+      console.log("⏰ Timeout triggered - processing final speech");
+
+      // Clear the timeout reference immediately
+      idleTimeoutRef.current = null;
+
+      // Double-check processing flag
+      if (isProcessingRef.current) {
+        console.log("⚠️ Already processing timeout, skipping...");
+        return;
+      }
+
+      setScript((currentScript) => {
+        const finalText = currentScript.trim();
+
+        if (finalText) {
+          console.log("✅ Final speech submitted:", finalText);
+          setFinalSpeech(finalText);
+          saveSpeechToFirebase(finalText);
+        }
+
+        return ""; // Clear the script
+      });
+    };
+
+    recognition.onresult = (event: any) => {
+      const transcript =
+        event.results[event.results.length - 1][0].transcript.trim();
+      console.log("🧠 Heard:", transcript);
+
+      // Clear existing timeout FIRST
+      if (idleTimeoutRef.current) {
+        console.log("🧹 Clearing existing timeout");
+        clearTimeout(idleTimeoutRef.current);
+        idleTimeoutRef.current = null;
+      }
+
+      // Update script
+      setScript((prev) => {
+        const newScript = prev + transcript + " ";
+        console.log("📝 Full script:", newScript);
+        return newScript;
+      });
+
+      // Set NEW timeout with a unique reference
+      console.log("⏰ Setting new timeout");
+      idleTimeoutRef.current = setTimeout(processTimeout, 10000);
+
+      // Voice commands
+      const lowerTranscript = transcript.toLowerCase();
+      if (lowerTranscript.includes("hey assistant")) {
+        speak("Yes? How can I help?");
+      } else if (lowerTranscript.includes("clear script")) {
+        setScript("");
+        speak("Script cleared");
+      }
+    };
+
     const startListening = () => {
       if (!listeningRef.current) {
         try {
@@ -70,35 +322,6 @@ export default function Home() {
         } catch (e) {
           console.error("Failed to start recognition:", e);
         }
-      }
-    };
-
-    recognition.onresult = (event: any) => {
-      const transcript =
-        event.results[event.results.length - 1][0].transcript.trim();
-      console.log("🧠 Heard:", transcript);
-
-      // Update script with all spoken text
-      setScript((prev) => {
-        const newScript = prev + transcript + " ";
-        console.log("📝 Full script:", newScript);
-
-        // Restart 5s idle timer every update
-        idleTimeout = setTimeout(() => {
-          setFinalSpeech(newScript.trim());
-          setScript(""); // clear buffer
-          console.log("✅ Final speech submitted:", newScript.trim());
-        }, 10000);
-        return newScript;
-      });
-
-      // Optional: Add voice commands
-      const lowerTranscript = transcript.toLowerCase();
-      if (lowerTranscript.includes("hey assistant")) {
-        speak("Yes? How can I help?");
-      } else if (lowerTranscript.includes("clear script")) {
-        setScript("");
-        speak("Script cleared");
       }
     };
 
@@ -114,10 +337,15 @@ export default function Home() {
     };
 
     recognition.onend = () => {
+      console.log("🔚 Recognition ended");
       listeningRef.current = false;
       setIsListening(false);
-      // Restart automatically after 1 second
-      setTimeout(startListening, 1000);
+
+      // Only restart if we're still initialized and not processing
+      if (isInitializedRef.current && !isProcessingRef.current) {
+        console.log("🔄 Restarting recognition...");
+        setTimeout(startListening, 1000);
+      }
     };
 
     recognition.onstart = () => {
@@ -128,13 +356,44 @@ export default function Home() {
     // Start listening
     startListening();
 
-    // ✅ Simple speech function
     const speak = (text: string) => {
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = "en-US";
       synth.speak(utterance);
     };
-  };
+  }, []); // Empty dependency array for useCallback
+
+  // Updated useEffect
+  useEffect(() => {
+    console.log("🔄 useEffect running...");
+
+    initializeSpeechRecognition();
+
+    return () => {
+      console.log("🧹 Cleaning up speech recognition...");
+
+      // Set cleanup flag first
+      isInitializedRef.current = false;
+
+      // Clear timeout
+      if (idleTimeoutRef.current) {
+        clearTimeout(idleTimeoutRef.current);
+        idleTimeoutRef.current = null;
+      }
+
+      // Reset processing flag
+      isProcessingRef.current = false;
+
+      // Stop recognition
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+        recognitionRef.current = null;
+      }
+
+      listeningRef.current = false;
+      setIsListening(false);
+    };
+  }, []); // Empty dependency array
 
   const handleLogout = async () => {
     if (recognitionRef.current) {
@@ -144,63 +403,15 @@ export default function Home() {
     window.location.href = "/login";
   };
 
-  // useEffect(() => {
-  //   const startScreenshotCapture = async () => {
-  //     try {
-  //       const stream = await navigator.mediaDevices.getDisplayMedia({
-  //         video: true,
-  //       });
-  //       const video = document.createElement("video");
-  //       video.srcObject = stream;
-  //       video.play();
-  //       video.style.display = "none";
-  //       document.body.appendChild(video);
-  //       videoRef.current = video;
-
-  //       const canvas = document.createElement("canvas");
-  //       canvas.style.display = "none";
-  //       document.body.appendChild(canvas);
-  //       canvasRef.current = canvas;
-
-  //       const interval = setInterval(() => {
-  //         if (!video.videoWidth || !video.videoHeight) {
-  //           console.log("⏳ Waiting for video to be ready...");
-  //           return;
-  //         }
-
-  //         canvas.width = video.videoWidth;
-  //         canvas.height = video.videoHeight;
-
-  //         const ctx = canvas.getContext("2d");
-  //         if (!ctx) {
-  //           console.error("❌ Could not get 2D context from canvas");
-  //           return;
-  //         }
-  //         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-  //         canvas.toBlob((blob) => {
-  //           if (blob) {
-  //             const url = URL.createObjectURL(blob);
-  //             const a = document.createElement("a");
-  //             a.href = url;
-  //             a.download = `${dateStr}-${timeStr}.png`;
-  //             a.click();
-  //           }
-  //         });
-  //       }, 60 * 1000); // Every 30 seconds
-
-  //       return () => {
-  //         clearInterval(interval);
-  //         video.remove();
-  //         canvas.remove();
-  //         stream.getTracks().forEach((t) => t.stop());
-  //       };
-  //     } catch (err) {
-  //       console.error("🛑 Error during screen capture:", err);
-  //     }
-  //   };
-
-  //   startScreenshotCapture();
-  // }, []);
+  if (checking) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+        <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-8 shadow-2xl">
+          <p className="text-white text-lg font-medium">Checking login...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <main className="flex flex-col h-screen bg-gray-800">
