@@ -9,6 +9,7 @@ import MoodAnalysis from "./../components/MoodAnalysis";
 import TranscriptSidebar from "./../components/TranscriptSidebar";
 import Header from "./../components/Header";
 import VideoPlayerWithEyeTracking from "../components/VideoPlayerWithEyeTracking";
+import VideoPlayerWithWebgazer from "../components/VideoPlayerWithWebgazer";
 
 export default function Home() {
   const [showModal, setShowModal] = useState(false);
@@ -19,6 +20,16 @@ export default function Home() {
   const recognitionRef = useRef<any>(null);
   const listeningRef = useRef(false);
   const silenceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const now = new Date();
+  const pad = (n: number) => n.toString().padStart(2, "0");
+  const dateStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(
+    now.getDate()
+  )}`;
+  const timeStr = `${pad(now.getHours())}-${pad(now.getMinutes())}-${pad(
+    now.getSeconds()
+  )}`;
 
   useEffect(() => {
     initializeSpeechRecognition();
@@ -132,6 +143,64 @@ export default function Home() {
     await signOut(auth);
     window.location.href = "/login";
   };
+
+  // useEffect(() => {
+  //   const startScreenshotCapture = async () => {
+  //     try {
+  //       const stream = await navigator.mediaDevices.getDisplayMedia({
+  //         video: true,
+  //       });
+  //       const video = document.createElement("video");
+  //       video.srcObject = stream;
+  //       video.play();
+  //       video.style.display = "none";
+  //       document.body.appendChild(video);
+  //       videoRef.current = video;
+
+  //       const canvas = document.createElement("canvas");
+  //       canvas.style.display = "none";
+  //       document.body.appendChild(canvas);
+  //       canvasRef.current = canvas;
+
+  //       const interval = setInterval(() => {
+  //         if (!video.videoWidth || !video.videoHeight) {
+  //           console.log("⏳ Waiting for video to be ready...");
+  //           return;
+  //         }
+
+  //         canvas.width = video.videoWidth;
+  //         canvas.height = video.videoHeight;
+
+  //         const ctx = canvas.getContext("2d");
+  //         if (!ctx) {
+  //           console.error("❌ Could not get 2D context from canvas");
+  //           return;
+  //         }
+  //         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  //         canvas.toBlob((blob) => {
+  //           if (blob) {
+  //             const url = URL.createObjectURL(blob);
+  //             const a = document.createElement("a");
+  //             a.href = url;
+  //             a.download = `${dateStr}-${timeStr}.png`;
+  //             a.click();
+  //           }
+  //         });
+  //       }, 60 * 1000); // Every 30 seconds
+
+  //       return () => {
+  //         clearInterval(interval);
+  //         video.remove();
+  //         canvas.remove();
+  //         stream.getTracks().forEach((t) => t.stop());
+  //       };
+  //     } catch (err) {
+  //       console.error("🛑 Error during screen capture:", err);
+  //     }
+  //   };
+
+  //   startScreenshotCapture();
+  // }, []);
 
   return (
     <main className="flex flex-col h-screen bg-gray-800">

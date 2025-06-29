@@ -12,104 +12,21 @@ interface EyeData {
   rightEyeBox: { x: number; y: number; width: number; height: number };
 }
 
-export default function VideoPlayerWithEyeTracking() {
+interface GazeData {
+  x: number;
+  y: number;
+}
+
+export default function VideoPlayerWithWebgazer() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const videoScreenRef = useRef<HTMLVideoElement | null>(null);
-  const canvasScreenRef = useRef<HTMLCanvasElement | null>(null);
   const overlayCanvasRef = useRef<HTMLCanvasElement>(null);
   const [modelsLoaded, setModelsLoaded] = useState(false);
   const [eyeData, setEyeData] = useState<EyeData | null>(null);
-  const now = new Date();
-
-  const pad = (n: number) => n.toString().padStart(2, "0");
-
-  const dateStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(
-    now.getDate()
-  )}`;
-  const timeStr = `${pad(now.getHours())}-${pad(now.getMinutes())}-${pad(
-    now.getSeconds()
-  )}`;
-
-  // Screen capture setup
-
-  useEffect(() => {
-    const startScreenshotCapture = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getDisplayMedia({
-          video: true,
-        });
-        const video = document.createElement("video");
-        video.srcObject = stream;
-        video.play();
-        video.style.display = "none";
-        document.body.appendChild(video);
-        videoScreenRef.current = video;
-
-        const canvas = document.createElement("canvas");
-        canvas.style.display = "none";
-        document.body.appendChild(canvas);
-        canvasScreenRef.current = canvas;
-
-        const interval = setInterval(() => {
-          if (!video.videoWidth || !video.videoHeight) {
-            console.log("⏳ Waiting for video to be ready...");
-            return;
-          }
-
-          canvas.width = video.videoWidth;
-          canvas.height = video.videoHeight;
-
-          const ctx = canvas.getContext("2d");
-          if (!ctx) {
-            console.error("❌ Could not get 2D context from canvas");
-            return;
-          }
-          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-          // canvas.toBlob((blob) => {
-          //   if (blob) {
-          //     const url = URL.createObjectURL(blob);
-          //     const a = document.createElement("a");
-          //     a.href = url;
-          //     a.download = `${dateStr}-${timeStr}.png`;
-          //     a.click();
-          //   }
-          // });
-
-          canvas.toBlob(async (blob) => {
-            if (!blob) return;
-
-            const storage = getStorage(app);
-            const imageRef = ref(
-              storage,
-              `screenrecord/SR-${dateStr}-${timeStr}.png`
-            );
-
-            try {
-              await uploadBytes(imageRef, blob);
-              console.log("Uploaded screenshot!");
-            } catch (uploadErr) {
-              console.error("Upload error:", uploadErr);
-            }
-          }, "image/png");
-        }, 60 * 1000); // Every 30 seconds
-
-        return () => {
-          clearInterval(interval);
-          video.remove();
-          canvas.remove();
-          stream.getTracks().forEach((t) => t.stop());
-        };
-      } catch (err) {
-        console.error("🛑 Error during screen capture:", err);
-      }
-    };
-
-    startScreenshotCapture();
-  }, []);
+  const [gazeData, setGazeData] = useState<GazeData | null>(null);
+  const [webgazerReady, setWebgazerReady] = useState(false);
 
   // Load face-api.js models
-
   useEffect(() => {
     const loadModels = async () => {
       try {
@@ -122,13 +39,53 @@ export default function VideoPlayerWithEyeTracking() {
         ]);
 
         setModelsLoaded(true);
-        console.log("Models loaded successfully");
+        console.log("Face-api.js models loaded successfully");
       } catch (error) {
-        console.error("Failed to load models:", error);
+        console.error("Failed to load face-api models:", error);
       }
     };
 
     loadModels();
+  }, []);
+
+  // Initialize WebGazer
+  useEffect(() => {
+    const initWebGazer = async () => {
+      try {
+        // Dynamically import webgazer to avoid SSR issues
+        const webgazer = await import("webgazer");
+
+        webgazer.default
+          .setGazeListener((data: GazeData | null) => {
+            if (data) {
+              setGazeData({ x: data.x, y: data.y });
+            }
+          })
+          .begin()
+          .then(() => {
+            setWebgazerReady(true);
+            console.log("WebGazer initialized successfully");
+
+            // Hide the default WebGazer video element if it appears
+            const webgazerVideo = document.getElementById("webgazerVideoFeed");
+            if (webgazerVideo) {
+              webgazerVideo.style.display = "none";
+            }
+          })
+          .catch((err: any) => {
+            console.error("WebGazer initialization failed:", err);
+          });
+
+        // Cleanup function
+        return () => {
+          webgazer.default.end();
+        };
+      } catch (error) {
+        console.error("Failed to load WebGazer:", error);
+      }
+    };
+
+    initWebGazer();
   }, []);
 
   useEffect(() => {
@@ -172,25 +129,28 @@ export default function VideoPlayerWithEyeTracking() {
     }
 
     // Convert combined image to blob and upload
-    canvas.toBlob(async (blob) => {
-      if (!blob) return;
+    // canvas.toBlob(async (blob) => {
+    //   if (!blob) return;
 
-      const storage = getStorage(app);
-      const imageRef = ref(storage, `eyetracking/ET-${dateStr}-${timeStr}.png`);
+    //   const storage = getStorage(app);
+    //   const imageRef = ref(
+    //     storage,
+    //     `screenshots/snap-with-eyetracking-${Date.now()}.jpg`
+    //   );
 
-      try {
-        await uploadBytes(imageRef, blob);
-        console.log("Uploaded screenshot with eye tracking!");
-      } catch (uploadErr) {
-        console.error("Upload error:", uploadErr);
-      }
-    }, "image/png");
+    //   try {
+    //     await uploadBytes(imageRef, blob);
+    //     console.log("Uploaded screenshot with eye tracking!");
+    //   } catch (uploadErr) {
+    //     console.error("Upload error:", uploadErr);
+    //   }
+    // }, "image/jpeg");
   };
 
   useEffect(() => {
     const interval = setInterval(() => {
       captureScreenshotWithEyeTracking();
-    }, 60000); // every 1 min
+    }, 10000); // every 10 seconds
 
     return () => clearInterval(interval);
   }, []);
@@ -272,7 +232,7 @@ export default function VideoPlayerWithEyeTracking() {
     }
   };
 
-  // Function to draw red boxes around eyes
+  // Function to draw red boxes around eyes and gaze point
   const drawEyeBoxes = (data: EyeData) => {
     const canvas = overlayCanvasRef.current;
     const video = videoRef.current;
@@ -331,11 +291,46 @@ export default function VideoPlayerWithEyeTracking() {
     ctx.arc(data.rightEyeCenter.x, data.rightEyeCenter.y, 4, 0, 2 * Math.PI);
     ctx.fill();
 
+    // Draw WebGazer gaze point if available
+    if (gazeData && webgazerReady) {
+      // Convert screen coordinates to canvas coordinates
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+
+      const gazeX = (gazeData.x - rect.left) * scaleX;
+      const gazeY = (gazeData.y - rect.top) * scaleY;
+
+      // Draw gaze point
+      ctx.fillStyle = "lime";
+      ctx.beginPath();
+      ctx.arc(gazeX, gazeY, 8, 0, 2 * Math.PI);
+      ctx.fill();
+
+      // Draw crosshair for gaze point
+      ctx.strokeStyle = "lime";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(gazeX - 15, gazeY);
+      ctx.lineTo(gazeX + 15, gazeY);
+      ctx.moveTo(gazeX, gazeY - 15);
+      ctx.lineTo(gazeX, gazeY + 15);
+      ctx.stroke();
+    }
+
     // Add labels
     ctx.fillStyle = "white";
     ctx.font = "16px Arial";
     ctx.fillText("L", data.leftEyeBox.x, data.leftEyeBox.y - 5);
     ctx.fillText("R", data.rightEyeBox.x, data.rightEyeBox.y - 5);
+
+    if (gazeData && webgazerReady) {
+      ctx.fillText(
+        "GAZE",
+        data.rightEyeBox.x + data.rightEyeBox.width + 10,
+        data.rightEyeBox.y
+      );
+    }
   };
 
   const clearCanvas = () => {
@@ -378,7 +373,8 @@ export default function VideoPlayerWithEyeTracking() {
 
       {/* Eye tracking info display */}
       <div className="absolute top-4 left-4 text-white text-sm bg-black bg-opacity-50 p-2 rounded">
-        <div>Models: {modelsLoaded ? "✅ Loaded" : "⏳ Loading..."}</div>
+        <div>Face-API: {modelsLoaded ? "✅ Loaded" : "⏳ Loading..."}</div>
+        <div>WebGazer: {webgazerReady ? "✅ Ready" : "⏳ Loading..."}</div>
         {eyeData ? (
           <>
             <div>👁️ Eyes detected!</div>
@@ -393,6 +389,11 @@ export default function VideoPlayerWithEyeTracking() {
           </>
         ) : (
           <div>👁️ Looking for eyes...</div>
+        )}
+        {gazeData && webgazerReady && (
+          <div>
+            🎯 Gaze: ({gazeData.x.toFixed(0)}, {gazeData.y.toFixed(0)})
+          </div>
         )}
       </div>
     </div>
