@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import * as faceapi from "face-api.js";
 import { getStorage, ref, uploadBytes } from "firebase/storage";
 import { app } from "../../lib/firebase";
+import { getAuth } from "firebase/auth";
 
 // Define the type for eye data
 interface EyeData {
@@ -20,20 +21,44 @@ export default function VideoPlayerWithEyeTracking() {
   const overlayCanvasRef = useRef<HTMLCanvasElement>(null);
   const [modelsLoaded, setModelsLoaded] = useState(false);
   const [eyeData, setEyeData] = useState<EyeData | null>(null);
-  const now = new Date();
+  // const now = new Date();
 
-  const pad = (n: number) => n.toString().padStart(2, "0");
+  // const pad = (n: number) => n.toString().padStart(2, "0");
 
-  const dateStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(
-    now.getDate()
-  )}`;
-  const timeStr = `${pad(now.getHours())}-${pad(now.getMinutes())}-${pad(
-    now.getSeconds()
-  )}`;
+  // const dateStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(
+  //   now.getDate()
+  // )}`;
+  // const timeStr = `${pad(now.getHours())}-${pad(now.getMinutes())}-${pad(
+  //   now.getSeconds()
+  // )}`;
+  const [uid, setUid] = useState<string | null>(null);
+
+  useEffect(() => {
+    const auth = getAuth(); // Make sure this is called inside the effect
+    const user = auth.currentUser;
+
+    if (user) {
+      setUid(user.uid);
+      console.log("User ID (immediate):", user.uid);
+    } else {
+      // Listen for auth state changes
+      const unsubscribe = auth.onAuthStateChanged((usr) => {
+        if (usr) {
+          setUid(usr.uid);
+          console.log("User ID (from listener):", usr.uid);
+        } else {
+          console.log("No user logged in.");
+        }
+      });
+
+      return () => unsubscribe();
+    }
+  }, []);
 
   // Screen capture setup
 
   useEffect(() => {
+    if (!uid) return; // 🔒 Do nothing until uid is ready
     const startScreenshotCapture = async () => {
       try {
         const stream = await navigator.mediaDevices.getDisplayMedia({
@@ -57,6 +82,13 @@ export default function VideoPlayerWithEyeTracking() {
             return;
           }
 
+          const now = new Date();
+          const pad = (n: number) => n.toString().padStart(2, "0");
+          const dateStr = `${now.getFullYear()}-${pad(
+            now.getMonth() + 1
+          )}-${pad(now.getDate())}`;
+          const timeStr = `${pad(now.getHours())}-${pad(now.getMinutes())}`;
+
           canvas.width = video.videoWidth;
           canvas.height = video.videoHeight;
 
@@ -66,15 +98,6 @@ export default function VideoPlayerWithEyeTracking() {
             return;
           }
           ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-          // canvas.toBlob((blob) => {
-          //   if (blob) {
-          //     const url = URL.createObjectURL(blob);
-          //     const a = document.createElement("a");
-          //     a.href = url;
-          //     a.download = `${dateStr}-${timeStr}.png`;
-          //     a.click();
-          //   }
-          // });
 
           canvas.toBlob(async (blob) => {
             if (!blob) return;
@@ -82,7 +105,7 @@ export default function VideoPlayerWithEyeTracking() {
             const storage = getStorage(app);
             const imageRef = ref(
               storage,
-              `screenrecord/SR-${dateStr}-${timeStr}.png`
+              `${uid}/screenrecord/SR-${dateStr}-${timeStr}.png`
             );
 
             try {
@@ -106,7 +129,7 @@ export default function VideoPlayerWithEyeTracking() {
     };
 
     startScreenshotCapture();
-  }, []);
+  }, [uid]);
 
   // Load face-api.js models
 
@@ -175,8 +198,18 @@ export default function VideoPlayerWithEyeTracking() {
     canvas.toBlob(async (blob) => {
       if (!blob) return;
 
+      const now = new Date();
+      const pad = (n: number) => n.toString().padStart(2, "0");
+      const dateStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(
+        now.getDate()
+      )}`;
+      const timeStr = `${pad(now.getHours())}-${pad(now.getMinutes())}`;
+
       const storage = getStorage(app);
-      const imageRef = ref(storage, `eyetracking/ET-${dateStr}-${timeStr}.png`);
+      const imageRef = ref(
+        storage,
+        `${uid}/eyetracking/ET-${dateStr}-${timeStr}.png`
+      );
 
       try {
         await uploadBytes(imageRef, blob);
@@ -188,12 +221,13 @@ export default function VideoPlayerWithEyeTracking() {
   };
 
   useEffect(() => {
+    if (!uid) return; // 🔒 Do nothing until uid is ready
     const interval = setInterval(() => {
       captureScreenshotWithEyeTracking();
     }, 60000); // every 1 min
 
     return () => clearInterval(interval);
-  }, []);
+  }, [uid]);
 
   // Function to calculate bounding box for eye landmarks
   const calculateEyeBox = (eyeLandmarks: any[]) => {
